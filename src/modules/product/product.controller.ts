@@ -130,4 +130,40 @@ export class ProductController {
       });
     }
   }
+  // ===== Delete Product by ID ========
+  async deleteProductById(
+    req: Request<{ productId: string }, any, any>,
+    res: Response<{
+      success: boolean;
+      message: string;
+      data?: Product | undefined;
+    }>
+  ): Promise<void> {
+    try {
+      const productId = req.params.productId;
+
+      const deletedProduct: Product | null =
+        await ProductModel.findByIdAndDelete(productId);
+
+      if (!deletedProduct) {
+        res.status(404).json({
+          success: false,
+          message: "Product not found",
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Product deleted successfully!",
+        data: deletedProduct,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete product",
+        error: error.message,
+      });
+    }
+  }
 }

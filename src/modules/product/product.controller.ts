@@ -166,4 +166,15 @@ export class ProductController {
       });
     }
   }
+  // ========= Search Products ==========
+  async searchProducts(searchTerm: string): Promise<Product[]> {
+    const products: Product[] = await ProductModel.find({
+      $or: [
+        { name: { $regex: searchTerm, $options: "i" } },
+        { description: { $regex: searchTerm, $options: "i" } },
+        { category: { $regex: searchTerm, $options: "i" } },
+      ],
+    });
+    return products;
+  }
 }

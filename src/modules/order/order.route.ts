@@ -1,6 +1,6 @@
 // order.route.ts
 import express, { Request, Response } from "express";
-import { OrderModel, orderCreationSchema } from "./order.model"; // Import the Order model
+import { orderCreationSchema } from "./order.model"; // Import the Order model
 
 const router = express.Router();
 
@@ -16,9 +16,10 @@ router.post("/api/orders", async (req: Request, res: Response) => {
     }
 
     const { email, productId, price, quantity } = req.body;
-
-    // Check the available quantity in the inventory
-    // Proceed with the rest of the logic...
+    console.log("Email:", email);
+    console.log("Product ID:", productId);
+    console.log("Price:", price);
+    console.log("Quantity:", quantity);
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Internal server error" });

@@ -1,12 +1,12 @@
-// order.route.ts
 import express, { Request, Response } from "express";
-import { orderCreationSchema } from "./order.model"; // Import the Order model
+import { orderCreationSchema } from "./order.model";
+import Inventory from "./inventory.model";
 
 const router = express.Router();
 
-// POST endpoint to create a new order
 router.post("/api/orders", async (req: Request, res: Response) => {
   try {
+    // Validate request body against schema
     const { error } = orderCreationSchema.validate(req.body);
     if (error) {
       return res.status(400).json({
@@ -15,15 +15,39 @@ router.post("/api/orders", async (req: Request, res: Response) => {
       });
     }
 
-    const { email, productId, price, quantity } = req.body;
-    console.log("Email:", email);
-    console.log("Product ID:", productId);
-    console.log("Price:", price);
-    console.log("Quantity:", quantity);
+    // Extract order details from request body
+    const { productId, quantity } = req.body;
+
+    // Retrieve available quantity from inventory
+    const availableQuantity = await Inventory.getAvailableQuantity(productId);
+
+    // Check if the order can be fulfilled
+    if (quantity > availableQuantity) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient quantity available in inventory",
+      });
+    }
+
+    // Update the inventory
+    const updatedQuantity = availableQuantity - quantity;
+    const inStock = updatedQuantity > 0;
+
+    await Inventory.updateInventory(productId, updatedQuantity, inStock);
+
+    // Proceed with creating the order (e.g., saving order to database)
+
+    res.status(201).json({
+      success: true,
+      message: "Order created successfully",
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Error while processing order:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 });
 
-export { router as orderRoutes };
+export default router;

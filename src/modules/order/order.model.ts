@@ -1,4 +1,3 @@
-// order.model.ts
 import mongoose, { Schema, Document } from "mongoose";
 import Joi from "joi";
 

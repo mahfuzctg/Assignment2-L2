@@ -110,7 +110,7 @@ app.get("/api/orders", async (req: Request, res: Response) => {
       });
     }
 
-    // Retrieve orders from MongoDB for the specified email
+    //========= Retrieve orders from MongoDB for the specified email
     const orders = await OrderModel.find({ email: email as string });
 
     res.status(200).json({

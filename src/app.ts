@@ -26,9 +26,19 @@ app.get("/api/products", async (req: Request, res: Response) => {
     const searchTerm: string = req.query.searchTerm as string; // Extract the search term from query parameters
     const products = await productController.searchProducts(searchTerm); // Call the searchProducts method in ProductController
 
+    if (products.length === 0) {
+      // No products found with the specified name
+      return res.status(404).json({
+        success: false,
+        message: `No products matching search term '${searchTerm}' found.`,
+        data: null,
+      });
+    }
+
+    // Products found with the specified name
     res.status(200).json({
       success: true,
-      message: `Products matching search term '${searchTerm}' fetched successfully!`,
+      message: `${searchTerm} fetched successfully!`,
       data: products,
     });
   } catch (error) {

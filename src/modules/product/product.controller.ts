@@ -168,13 +168,15 @@ export class ProductController {
   }
   // ========= Search Products ==========
   async searchProducts(searchTerm: string): Promise<Product[]> {
+    // Search for products with the exact name matching the searchTerm
     const products: Product[] = await ProductModel.find({
-      $or: [
-        { name: { $regex: searchTerm, $options: "i" } },
-        { description: { $regex: searchTerm, $options: "i" } },
-        { category: { $regex: searchTerm, $options: "i" } },
-      ],
+      name: { $regex: new RegExp(`^${searchTerm}$`, "i") },
     });
+
+    if (products.length === 0) {
+      throw new Error(`No product with name '${searchTerm}' found.`);
+    }
+
     return products;
   }
 }

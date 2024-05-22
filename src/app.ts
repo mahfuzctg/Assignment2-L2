@@ -70,6 +70,7 @@ app.post("/api/orders", async (req: Request, res: Response) => {
     const savedOrder = await newOrder.save();
 
     // Return a success response
+
     res.status(201).json({
       success: true,
       message: "Order created successfully!",
@@ -127,7 +128,7 @@ app.get("/api/orders", async (req: Request, res: Response) => {
 
 // Example controller for root route
 const getAController = (req: Request, res: Response) => {
-  res.send("welcome to the backend project!!!");
+  res.send("Welcome Back!!!");
 };
 
 // Route for root URL

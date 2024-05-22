@@ -127,7 +127,7 @@ app.get("/api/orders", async (req: Request, res: Response) => {
 
 // Example controller for root route
 const getAController = (req: Request, res: Response) => {
-  res.send("Helloooo");
+  res.send("welcome to the backend project!!!");
 };
 
 // Route for root URL

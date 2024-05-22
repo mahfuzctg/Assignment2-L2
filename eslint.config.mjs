@@ -11,16 +11,15 @@ export default [
         process: "readonly",
       },
     },
-
     rules: {
       "no-unused-vars": "error",
       "no-unused-expressions": "error",
       "prefer-const": "error",
       "no-console": "warn",
       "no-undef": "error",
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
-
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
 ];

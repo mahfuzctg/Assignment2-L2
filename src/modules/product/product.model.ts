@@ -12,6 +12,13 @@ export interface Inventory {
   inStock: boolean;
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+}
+
 // Define Product interface
 export interface Product extends Document {
   name: string;

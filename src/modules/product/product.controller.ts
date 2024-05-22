@@ -1,15 +1,13 @@
 import { Request, Response } from "express";
 import { ProductModel, Product } from "./product.model";
-
-type CreateProductResponse = Response<{
-  success: boolean;
-  message: string;
-  data?: Product;
-}>;
+import { ParamsDictionary } from "express-serve-static-core";
 
 export class ProductController {
   // ===== Create Product
-  async createProduct(req: Request, res: Response): Promise<void> {
+  async createProduct(
+    req: Request<any, any, Partial<Product>>,
+    res: Response
+  ): Promise<void> {
     try {
       const { name, description, price, category, tags, variants, inventory } =
         req.body;
@@ -40,10 +38,7 @@ export class ProductController {
   }
 
   // ========= Get All Products ============
-  async getAllProducts(
-    req: Request,
-    res: Response<{ success: boolean; message: string; data?: Product[] }>
-  ): Promise<void> {
+  async getAllProducts(req: Request, res: Response): Promise<void> {
     try {
       const products: Product[] = await ProductModel.find();
 
@@ -62,7 +57,7 @@ export class ProductController {
 
   // ======= Get Product By ID ===========
   async getProductById(
-    req: Request<{ productId: string }, any, any>,
+    req: Request<ParamsDictionary, any, any>,
     res: Response<{
       success: boolean;
       message: string;
@@ -71,7 +66,7 @@ export class ProductController {
     }>
   ): Promise<void> {
     try {
-      const productId = req.params.productId;
+      const productId: string = req.params["productId"];
 
       const product: Product | null = await ProductModel.findById(productId);
 
@@ -88,7 +83,7 @@ export class ProductController {
         data: product,
       });
     } catch (error) {
-      const errorMessage = error as string;
+      const errorMessage: string = (error as Error).message;
 
       res.status(500).json({
         success: false,
@@ -99,10 +94,13 @@ export class ProductController {
   }
   //==== Update Product Information by ID
 
-  async updateProductById(req: Request, res: Response): Promise<void> {
+  async updateProductById(
+    req: Request<ParamsDictionary, any, Partial<Product>>,
+    res: Response
+  ): Promise<void> {
     try {
-      const productId = req.params.productId;
-      const updatedProductData: Product = req.body;
+      const productId: string = req.params["productId"];
+      const updatedProductData: Partial<Product> = req.body;
 
       const updatedProduct: Product | null =
         await ProductModel.findByIdAndUpdate(productId, updatedProductData, {
@@ -122,25 +120,21 @@ export class ProductController {
         message: "Product updated successfully!",
         data: updatedProduct,
       });
-    } catch (error: any) {
+    } catch (error) {
       res.status(500).json({
         success: false,
         message: "Failed to update product",
-        error: error.message,
+        error: (error as Error).message,
       });
     }
   }
   // ===== Delete Product by ID ========
   async deleteProductById(
-    req: Request<{ productId: string }, any, any>,
-    res: Response<{
-      success: boolean;
-      message: string;
-      data?: Product | undefined;
-    }>
+    req: Request<ParamsDictionary, any, any>,
+    res: Response
   ): Promise<void> {
     try {
-      const productId = req.params.productId;
+      const productId: string = req.params["productId"];
 
       const deletedProduct: Product | null =
         await ProductModel.findByIdAndDelete(productId);
@@ -158,11 +152,11 @@ export class ProductController {
         message: "Product deleted successfully!",
         data: deletedProduct,
       });
-    } catch (error: any) {
+    } catch (error) {
       res.status(500).json({
         success: false,
         message: "Failed to delete product",
-        error: error.message,
+        error: (error as Error).message,
       });
     }
   }

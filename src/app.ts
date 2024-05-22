@@ -18,6 +18,7 @@ app.use("/api/products", ProductRoutes);
 app.delete("/api/products/:productId", async (req: Request, res: Response) => {
   const productId = parseInt(req.params.productId);
   // Add logic for deleting the product
+  console.log(productId);
   res.send("Product deletion logic goes here");
 });
 

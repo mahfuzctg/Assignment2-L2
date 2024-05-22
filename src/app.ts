@@ -48,24 +48,6 @@ app.get("/api/products", async (req: Request, res: Response) => {
   }
 });
 
-// Retrieve all orders
-app.get("/api/orders", async (req: Request, res: Response) => {
-  try {
-    // Fetch all orders from the database
-    const orders = await OrderModel.find({});
-
-    // Send the response
-    res.status(200).json({
-      success: true,
-      message: "Orders fetched successfully!",
-      data: orders,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Internal server error" });
-  }
-});
-
 // ============== Create a new order ==============
 app.post("/api/orders", async (req: Request, res: Response) => {
   try {
@@ -91,6 +73,50 @@ app.post("/api/orders", async (req: Request, res: Response) => {
       success: true,
       message: "Order created successfully!",
       data: savedOrder,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+// Retrieve all orders
+app.get("/api/orders", async (req: Request, res: Response) => {
+  try {
+    // Fetch all orders from the database
+    const orders = await OrderModel.find({});
+
+    // Send the response
+    res.status(200).json({
+      success: true,
+      message: "Orders fetched successfully!",
+      data: orders,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+// Retrieve Orders by User Email
+app.get("/api/orders", async (req: Request, res: Response) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email parameter is required",
+      });
+    }
+
+    // Retrieve orders from MongoDB for the specified email
+    const orders = await OrderModel.find({ email: email as string });
+
+    res.status(200).json({
+      success: true,
+      message: `Orders fetched successfully for user ${email}!`,
+      data: orders,
     });
   } catch (error) {
     console.error(error);

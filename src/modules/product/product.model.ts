@@ -1,12 +1,12 @@
-import { Schema, model, Document } from "mongoose";
+import { Document, Schema, model } from "mongoose";
 
-// Define Variant interface
+//========= Define Variant interface ===========
 export interface Variant {
   type: string;
   value: string;
 }
 
-// Define Inventory interface
+//========== Define Inventory interface ===========
 export interface Inventory {
   quantity: number;
   inStock: boolean;
@@ -19,7 +19,7 @@ export interface Product {
   price: number;
 }
 
-// Define Product interface
+//======= Define Product interface ========
 export interface Product extends Document {
   name: string;
   description: string;
@@ -30,7 +30,7 @@ export interface Product extends Document {
   inventory: Inventory;
 }
 
-// Define Variant schema
+// ========= Define Variant schema =========
 const variantSchema = new Schema<Variant>({
   type: {
     type: String,
@@ -42,7 +42,7 @@ const variantSchema = new Schema<Variant>({
   },
 });
 
-// Define Inventory schema
+// ========= Define Inventory schema =============
 const inventorySchema = new Schema<Inventory>({
   quantity: {
     type: Number,
@@ -55,7 +55,7 @@ const inventorySchema = new Schema<Inventory>({
   },
 });
 
-// Define Product schema
+// ========== Define Product schema =========
 const productSchema = new Schema<Product>({
   name: {
     type: String,
@@ -88,5 +88,5 @@ const productSchema = new Schema<Product>({
   },
 });
 
-// Create Product model
+// ========= Create Product model ============
 export const ProductModel = model<Product>("Product", productSchema);

@@ -1,176 +1,147 @@
 import { Request, Response } from "express";
-import { ProductModel, Product } from "./product.model";
-import { ParamsDictionary } from "express-serve-static-core";
 
-export class ProductController {
-  // ===== Create Product
-  async createProduct(
-    req: Request<any, any, Partial<Product>>,
-    res: Response
-  ): Promise<void> {
-    try {
-      const { name, description, price, category, tags, variants, inventory } =
-        req.body;
+import { productServices } from "./product.service";
+import productValidationSchema from "./product.validation";
 
-      const newProduct: Product = new ProductModel({
-        name,
-        description,
-        price,
-        category,
-        tags,
-        variants,
-        inventory,
-      });
+const createProduct = async (req: Request, res: Response) => {
+  try {
+    const product = req.body;
 
-      const savedProduct: Product = await newProduct.save();
-
-      res.status(201).json({
-        success: true,
-        message: "Product created successfully!",
-        data: savedProduct,
-      });
-    } catch (error) {
-      res.status(500).json({
+    const { error, value } = productValidationSchema.validate(product);
+    if (error) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to create product",
+        message: "Validation error",
+        error: error.details,
       });
     }
+
+    const result = await productServices.createProductIntoDb(value);
+    res.status(200).json({
+      success: true,
+      message: "Product created successfully!",
+      data: result,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: error.message,
+    });
   }
+};
 
-  // ========= Get All Products ============
-  async getAllProducts(req: Request, res: Response): Promise<void> {
-    try {
-      const products: Product[] = await ProductModel.find();
-
-      res.status(200).json({
+const getAllProducts = async (req: Request, res: Response) => {
+  try {
+    const { searchTerm } = req.query;
+    const result = await productServices.getProductsFromDb(
+      searchTerm as string
+    );
+    if (searchTerm && result.length > 0) {
+      return res.status(200).json({
+        success: true,
+        message: `Products matching search term '${searchTerm}' fetched successfully!`,
+        data: result,
+      });
+    } else if (result.length > 0) {
+      return res.status(200).json({
         success: true,
         message: "Products fetched successfully!",
-        data: products,
-      });
-    } catch {
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch products",
+        data: result,
       });
     }
-  }
-
-  // ======= Get Product By ID ===========
-  async getProductById(
-    req: Request<ParamsDictionary, any, any>,
-    res: Response<{
-      success: boolean;
-      message: string;
-      data?: Product | undefined;
-      error?: string;
-    }>
-  ): Promise<void> {
-    try {
-      const productId: string = req.params["productId"];
-
-      const product: Product | null = await ProductModel.findById(productId);
-
-      if (!product) {
-        res.status(404).json({
-          success: false,
-          message: "Product not found",
-        });
-        return;
-      }
-      res.status(200).json({
-        success: true,
-        message: "Product fetched successfully!",
-        data: product,
-      });
-    } catch (error) {
-      const errorMessage: string = (error as Error).message;
-
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch product",
-        error: errorMessage,
-      });
-    }
-  }
-  //==== Update Product Information by ID
-
-  async updateProductById(
-    req: Request<ParamsDictionary, any, Partial<Product>>,
-    res: Response
-  ): Promise<void> {
-    try {
-      const productId: string = req.params["productId"];
-      const updatedProductData: Partial<Product> = req.body;
-
-      const updatedProduct: Product | null =
-        await ProductModel.findByIdAndUpdate(productId, updatedProductData, {
-          new: true,
-        });
-
-      if (!updatedProduct) {
-        res.status(404).json({
-          success: false,
-          message: "Product not found",
-        });
-        return;
-      }
-
-      res.status(200).json({
-        success: true,
-        message: "Product updated successfully!",
-        data: updatedProduct,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Failed to update product",
-        error: (error as Error).message,
-      });
-    }
-  }
-  // ===== Delete Product by ID ========
-  async deleteProductById(
-    req: Request<ParamsDictionary, any, any>,
-    res: Response
-  ): Promise<void> {
-    try {
-      const productId: string = req.params["productId"];
-
-      const deletedProduct: Product | null =
-        await ProductModel.findByIdAndDelete(productId);
-
-      if (!deletedProduct) {
-        res.status(404).json({
-          success: false,
-          message: "Product not found",
-        });
-        return;
-      }
-
-      res.status(200).json({
-        success: true,
-        message: "Product deleted successfully!",
-        data: deletedProduct,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Failed to delete product",
-        error: (error as Error).message,
-      });
-    }
-  }
-  // ========= Search Products ==========
-  async searchProducts(searchTerm: string): Promise<Product[]> {
-    // Search for products with the exact name matching the searchTerm
-    const products: Product[] = await ProductModel.find({
-      name: { $regex: new RegExp(`^${searchTerm}$`, "i") },
+    return res.status(200).json({
+      success: true,
+      message: "Matching product not available!",
+      data: result,
     });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: error,
+    });
+  }
+};
 
-    if (products.length === 0) {
-      throw new Error(`No product with name '${searchTerm}' found.`);
+const getProductById = async (req: Request, res: Response) => {
+  try {
+    const { productId } = req.params;
+    const result = await productServices.getProductByIdFromDb(productId);
+    if (!result) {
+      res.status(200).json({
+        success: false,
+        message: "Product Not Found",
+        data: null,
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Product fetched successfully!",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: error,
+    });
+  }
+};
+
+const updateProductById = async (req: Request, res: Response) => {
+  try {
+    const { productId } = req.params;
+    const product = req.body;
+    const { error, value } = productValidationSchema.validate(product);
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        error: error.details,
+      });
     }
 
-    return products;
+    const result = await productServices.updateProductFromDbById(
+      productId,
+      value
+    );
+    res.status(200).json({
+      success: true,
+      message: "Product updated successfully!",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: error,
+    });
   }
-}
+};
+
+const deleteProductById = async (req: Request, res: Response) => {
+  try {
+    const { productId } = req.params;
+    const result = await productServices.deleteProductByIdFromDb(productId);
+    res.status(200).json({
+      success: true,
+      message: "Product deleted successfully!",
+      data: null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: error,
+    });
+  }
+};
+
+export const productControllers = {
+  createProduct,
+  getAllProducts,
+  getProductById,
+  updateProductById,
+  deleteProductById,
+};

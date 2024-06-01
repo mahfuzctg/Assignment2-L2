@@ -1,23 +1,43 @@
+import { TProduct } from "./product.interface";
 import { ProductModel } from "./product.model";
-import { Product } from "./product.interface";
 
-const createProductIntoDB = async (product: Product) => {
+const createProductIntoDb = async (product: TProduct) => {
   const result = await ProductModel.create(product);
   return result;
 };
 
-const getAllProductsFromDB = async () => {
-  const result = await ProductModel.find();
+const getProductsFromDb = async (searchTerm: string) => {
+  if (searchTerm) {
+    const regex = new RegExp(searchTerm as string, "i");
+    const result = await ProductModel.find({
+      $or: [{ name: regex }, { description: regex }, { category: regex }],
+    });
+    return result;
+  }
+  return await ProductModel.find();
+};
+
+const getProductByIdFromDb = async (id: string) => {
+  const result = await ProductModel.findById({ _id: id });
   return result;
 };
 
-const getSingleProductFromDB = async (id: string) => {
-  const result = await ProductModel.findOne({ id });
+const updateProductFromDbById = async (id: string, product: TProduct) => {
+  const result = await ProductModel.findByIdAndUpdate(id, product, {
+    new: true,
+  });
   return result;
 };
 
-export const ProductServices = {
-  createProductIntoDB,
-  getAllProductsFromDB,
-  getSingleProductFromDB,
+const deleteProductByIdFromDb = async (id: string) => {
+  const result = await ProductModel.findByIdAndDelete(id);
+  return result;
+};
+
+export const productServices = {
+  createProductIntoDb,
+  getProductsFromDb,
+  getProductByIdFromDb,
+  updateProductFromDbById,
+  deleteProductByIdFromDb,
 };
